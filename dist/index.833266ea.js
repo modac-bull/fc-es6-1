@@ -572,17 +572,27 @@ window.addEventListener('hashchange', function() {
     content.appendChild(title);
     title.innerHTML = newsContent.title;
 });
-for(let i = 0; i < 10; i++){
+// 목록 리스트 데이터의 구조를 만들어 둔다.
+/* 
+ul
+  li
+    a
+*/ for(let i = 0; i < 10; i++){
+    const div = document.createElement('div'); // 임시로 div를 만들어 안에 li태그를 생성, 사용한다.
     const li = document.createElement('li'); // for문에서 li를 새로 매번 만들어준다.
     const a = document.createElement('a'); // a태그에 href속성이 없어서 링크 기능이 사용되지 않는다.
-    a.innerHTML = `${newsFeed[i].title} (${newsFeed[i].comments_count})`;
-    a.href = `#${newsFeed[i].id}`;
-    a.addEventListener('click', function() {
-    }); // 모든 a태그에 불러들일 수 있음 (좋지 않음)
-    // # (해시), 일종의 북마크 - 이 해시가 바뀌었을 때 이벤트가 하나 발생함 (hashchange)
-    // 어떤 링크, 어떤 타이틀이 클릭되었는지 알 수 있다. (이벤트 하나로 관리할 수 있어 효과적?)
-    li.appendChild(a);
-    ul.appendChild(li);
+    // 문자열을 가지고 html 구조를 만드는 것이 파악하기 쉽다.
+    div.innerHTML = `
+    <li>
+      <a href="#${newsFeed[i].id}"> 
+        ${newsFeed[i].title} (${newsFeed[i].comments_count}) 
+      <a>
+    </li>
+  `;
+    // div에 추가된 li만 사용하는 방법
+    // 1. div.children[0]
+    // 2. div.firstElementChild
+    ul.appendChild(div.firstElementChild);
 }
 container.appendChild(ul); // ul태그를 root 자식요소로 만든다.
 container.appendChild(content); // 버그 발생(기존 제목은 그대로 남아있음)
