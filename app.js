@@ -3,6 +3,12 @@ const ajax = new XMLHttpRequest();
 const NEWS_URL = "https://api.hnpwa.com/v0/news/1.json";
 const CONTENT_URL = "https://api.hnpwa.com/v0/item/@id.json"; // 마킹 @id
 const content = document.createElement('div');
+// 여러 함수에 걸쳐 공유되는 자원들을 하나로 묶어 놓는다. 
+// 다른 데이터들도 추가될수 있기 때문에
+const store = {
+  currentPage : 1, // 현재 페이지 초기값 1
+  maxPage : null,
+};
 
 // 입력은 인자로 받을 수 있음
 // function getData(url) {
@@ -23,28 +29,37 @@ function getData(url) {
 function newsFeed() {
   const newsFeed = getData(NEWS_URL); // 데이터를 가져오는 코드
   const newsList = [];
+  store.maxPage = Math.round(newsFeed.length / 10);
+  console.log(store.maxPage);
 
   newsList.push(`<ul>`);
 
-  for (let i = 0 ; i < 10; i++) {
+  for (let i = (store.currentPage - 1) * 10 ; i < store.currentPage * 10; i++) {
     // DOM API 제거실습
     newsList.push(`
       <li>
-        <a href="#${newsFeed[i].id}"> 
+        <a href="#/show/${newsFeed[i].id}"> 
           ${newsFeed[i].title} (${newsFeed[i].comments_count}) 
         <a>
       </li>
     `);
   }
-
   newsList.push(`</ul>`);
+
+  // 페이지네이션 , 방어코드 추가
+  newsList.push(`
+    <div>
+      <a href="#/page/${store.currentPage > 1 ? store.currentPage - 1 : 1}">이전 페이지</a> 
+      <a href="#/page/${store.currentPage >= store.maxPage ? store.maxPage : store.currentPage + 1 }">다음 페이지</a>
+    </div>
+  `)
   
   container.innerHTML = newsList.join('');
 }
 
 // 뉴스 상세 부르는 함수
 function newsDetail() { // 해시값이 변경될 경우에 함수 호출
-  const id = location.hash.substring(1)
+  const id = location.hash.substring(7);
   const newsContent =  getData(CONTENT_URL.replace('@id', id));
   const title = document.createElement('h1');
   // content.appendChild(title); // 추가하는 코드만 있다.
@@ -56,7 +71,7 @@ function newsDetail() { // 해시값이 변경될 경우에 함수 호출
   container.innerHTML = `
     <h1>${newsContent.title}</h1>
     <div>
-      <a href="#">목록으로</a>
+      <a href="#/page/${store.currentPage}">목록으로</a>
     </div>
   `; // 기존 내용이 전부 제거, div#root 하위요소에 '' 빈 내용 삽입
 }
@@ -73,8 +88,15 @@ function router() {
   // 초기 hash값이 없으면 newsFeed 함수를 호출하고
   // '#' 만 들어있을 경우에는 빈값을 반환함
   if(routePath === '') {
+    // 목록화면에서 넘어갈때 현재 currentPage값을 사용
     newsFeed();
-  } else { // hash값이 존재한다면 newsDetail함수를 호출
+  } else if (routePath.indexOf('#/page/') >= 0) { // hash값이 존재한다면 newsDetail함수를 호출
+    store.currentPage = Number(routePath.substring(7));
+    console.log(routePath.substring(7))
+    // 페이지네이션
+    // store.currentPage = 2; // 하드코딩
+    newsFeed();
+  } else {
     newsDetail();
   }
 
