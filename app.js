@@ -10,6 +10,7 @@ const store = {
   maxPage : null,
 };
 
+
 // 입력은 인자로 받을 수 있음
 // function getData(url) {
 //   ajax.open( 'GET', url, false );
@@ -32,7 +33,22 @@ function newsFeed() {
   store.maxPage = Math.round(newsFeed.length / 10);
   console.log(store.maxPage);
 
-  newsList.push(`<ul>`);
+  // 코드의 양은 늘어나더라도 복잡도가 늘어나지 않도록 작업해야 한다.
+  // 내용이 복잡해지면 문제발생 ...  배열을 최소화 --> 템플릿 방식 사용 (주조 , 몰딩 생각)
+  // UI가 어떤 구조인지 명확하게 알 수 있다. + Marking도 잘 확인 할 수 있음
+  // 즉, 복잡도를 줄일 수 있다.
+  let template = `
+    <div class="container mx-auto pt-10 pb-10" style="background-color: teal">
+      <h1>Hacker News</h1>
+      <ul> 
+          {{__news_feed__}}
+      </ul>
+      <div>
+        <a href ="#/page/{{__prev_page__}}">이전 페이지</a>
+        <a href ="#/page/{{__next_page__}}">다음 페이지</a>
+      </div>
+    </div>
+  `;
 
   for (let i = (store.currentPage - 1) * 10 ; i < store.currentPage * 10; i++) {
     // DOM API 제거실습
@@ -44,17 +60,12 @@ function newsFeed() {
       </li>
     `);
   }
-  newsList.push(`</ul>`);
 
-  // 페이지네이션 , 방어코드 추가
-  newsList.push(`
-    <div>
-      <a href="#/page/${store.currentPage > 1 ? store.currentPage - 1 : 1}">이전 페이지</a> 
-      <a href="#/page/${store.currentPage >= store.maxPage ? store.maxPage : store.currentPage + 1 }">다음 페이지</a>
-    </div>
-  `)
+  template = template.replace('{{__news_feed__}}', newsList.join(''));
+  template = template.replace('{{__prev_page__}}', store.currentPage > 1 ? store.currentPage -1 : 1);
+  template = template.replace('{{__next_page__}}', store.currentPage + 1);
   
-  container.innerHTML = newsList.join('');
+  container.innerHTML = template;
 }
 
 // 뉴스 상세 부르는 함수
